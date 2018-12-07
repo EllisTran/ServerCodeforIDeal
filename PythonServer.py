@@ -1,31 +1,65 @@
 import json
-names = []
 data = {}
+t = []
 data['student'] = []
 data['people'] = []
-
-import sys
+import time, sys
+import threading
 import socket           # Import socket module
 soc = socket.socket()         # Create a socket object
 host = "localhost" # Get local machine name
 port = 2004                # Reserve a port for your service.
+waitingforClient = True
 #serverSocket = socket(AF_INET, SOCK_STREAM)
 soc.bind((host, port))       # Bind to the port
 soc.listen(5)                 # Now wait for client connection.
 notFound = "Sorry, ID number not found"
 found = False
-print("Waiting for connection...")
+
+index = 0
+global stillThreading
+stillThreading = True
+
+
+print("\n<------------------------------------------------------------------------->\n")
+
+def waiting(stringWaiting, index):
+    global stillThreading
+    while stillThreading == True:
+        x = index % 4
+        dots = x *'.' + (3-x) * ' '
+        sys.stdout.write("\r" + stringWaiting + dots)
+        time.sleep(0.5)
+        sys.stdout.flush()
+        index+=1
+    stillThreading = True
+
+    
+
+def Threading(stringWaiting):
+    t
+     = threading.Thread(target=waiting, args = (stringWaiting, 0))
+    print(threading.active_count())
+    t.start()
+
+Threading("Waiting for connection from client")
 
 while True:
     conn, addr = soc.accept()     # Establish connection with client.
-    print ("Got connection from",addr)
-    print("\nWaiting to receive ID number from client...")
+    stillThreading = False
+    index +=1
+    print ("\nGot connection from",addr,"\n")
+    print(threading.active_count())
+    Threading("Waiting to receive ID number from client")
+    print(threading.active_count())
     msg = conn.recv(1024)                   #Receive message from Client
     msg = msg.decode('UTF-8')               #Decode that and put it in Unicode
     msg = msg[2:]                           #Cut off the beginning of the UTF-8 message
-    print(msg)
+    stillThreading = False
+
+    print("\n","\nID number received:",msg)
     with open('MOCK_DATA.json') as json_file: #Opens file as json
-        print("Searching through JSON file...\n")
+        print("Searching through JSON file...","\n")
         data = json.load(json_file) #loads the information and puts it into the data list
         #print(json.dumps(data, indent = 4)+ "\n")
         for p in data['people']:        #Looks through all of the people in the JSON file to see if any of the id numbers match
@@ -58,10 +92,10 @@ while True:
             conn.send(notFound)
             print("Sorry, ID number not found")
     break
-
 #Closes Socket
 soc.close()
-
+print(threading.active_count())
+print("\n<------------------------------------------------------------------------->")
     
  
 	
